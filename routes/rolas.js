@@ -1,50 +1,28 @@
 const express = require('express');
+
+const {
+  getRolas,
+  getRola,
+  createRola,
+  updateRola,
+  deleteRola,
+} = require('../controllers/rolas.js');
+
 const router = express.Router();
 
 // Get Rolas
-router.get('/', function(req, res) {
-  res
-    .status(200)
-    .json({
-      success: true,
-      msg: 'Show all rolas',
-    });
-});
+router.get('/', getRolas);
 
 // Get a single Rola
-router.get('/:id', function(req, res) {
-  res
-    .status(200)
-    .json({
-      success: true,
-      msg: 'Show rola #' + req.params.id,
-    });
-});
+router.get('/:id', getRola);
 
 // Add new Rola
-router.post('/', function(req, res) {
-
-  res.status(201).json({ rola: req.rola });
-});
+router.post('/', createRola);
 
 // Update a Rola
-router.put('/:id', function(req, res) {
-  res
-  .status(201)
-  .json({
-    success: true,
-    msg: 'Update rola #' + req.params.id,
-  });
-});
+router.put('/:id', updateRola);
 
 // Delete a Rola
-router.delete('/:id', function(req, res) {
-  res
-    .status(201)
-    .json({
-      success: true,
-      msg: 'Delete rola #' + req.params.id,
-    });
-});
+router.delete('/:id', deleteRola);
 
 module.exports = router;
