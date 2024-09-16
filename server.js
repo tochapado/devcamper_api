@@ -1,22 +1,42 @@
 const express = require('express');
 const dotenv = require('dotenv');
-
-// Route files
-const rolas = require('./routes/rolas.js');
-
+const morgan = require('morgan');
 const path = require('path');
-
-const PORT = process.env.PORT || 6969;
+const connectDB = require('./config/db.js');
 
 //load env vars
 dotenv.config({ path: './config/config.env' });
 
+connectDB();
+
+// Route files
+const bootcamps = require('./routes/bootcamps.js');
+
+const PORT = process.env.PORT || 6969;
+
 const app = express();
 
-// Mount routers
-app.use('/api/v1/rolas', rolas);
+// Body parser
+app.use(express.json());
 
-app.listen(
+// Dev logging middleware
+if(process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
+}
+
+// Mount routers
+app.use('/api/v1/bootcamps', bootcamps);
+
+const server = app.listen(
   PORT,
   console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`)
 );
+
+// Handle unhandled promisses rejections
+process.on('unhandledRejection', function(err, promise) {
+  console.log(`Error: ${err.message}`);
+  // Close server & exit process
+  server.close(function() {
+    return process.exit(1);
+  });
+});
