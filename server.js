@@ -3,6 +3,7 @@ const dotenv = require('dotenv');
 const morgan = require('morgan');
 const path = require('path');
 const connectDB = require('./config/db.js');
+const errorHandler = require('./middleware/error.js');
 
 //load env vars
 dotenv.config({ path: './config/config.env' });
@@ -26,6 +27,9 @@ if(process.env.NODE_ENV === 'development') {
 
 // Mount routers
 app.use('/api/v1/bootcamps', bootcamps);
+
+// Error handler middleware
+app.use(errorHandler);
 
 const server = app.listen(
   PORT,

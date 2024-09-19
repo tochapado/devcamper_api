@@ -1,145 +1,182 @@
+const ErrorResponse = require('../utils/errorResponse.js');
+const asyncHandler = require('../middleware/async.js');
 const Bootcamp = require('../models/Bootcamp.js');
 
 // @desc    Get all Bootcamps
 // @route   GET /api/v1/bootcamps
 // @access  Public
-async function getBootcamps(req, res, next) {
-  try {
-    const bootcamps = await Bootcamp.find();
-    res
-      .status(200)
-      .json({
-        success: true,
-        count: bootcamps.length,
-        data: bootcamps,
-      });
-  } catch(error) {
-    res
-      .status(400)
-      .json({
-        success: false,
-      });
+const getBootcamps = asyncHandler(async function(req, res, next) {
+  let query;
+
+  // Copy req.query
+  const reqQuery = { ...req.query };
+
+  // Fields to exclude
+  const removeFields = ['select', 'sort', 'page', 'limit'];
+
+  // Loop over removeFields and delete them from reqQuery
+  for(let i = 0; i < removeFields.length; i++) {
+    if(reqQuery[removeFields[i]]) {
+      delete reqQuery[removeFields[i]];
+    };
   };
-};
+
+  // Create query string
+  let queryStr = JSON.stringify(reqQuery);
+
+  // Create operators ($gt, $gte, etc)
+  queryStr = queryStr.replace(/\b(gt|gte|lt|lte|in)\b/g, function(match) {
+    return '$' + match;
+  });
+
+  // Finding resource
+  query = Bootcamp.find(JSON.parse(queryStr));
+
+  // Select Fields
+  if(req.query.select) {
+    const fields = req.query.select;
+    let fieldString = '';
+
+    for(let i = 0; i < fields.length; i++) {
+      if(fields[i] === ',') {
+        fieldString = fieldString + ' ';
+        continue;
+      };
+      fieldString = fieldString + fields[i];
+    };
+    query = query.select(fieldString);
+  };
+
+  // Sort
+  if(req.query.sort) {
+    const sortBy = req.query.sort;
+    let sortByString = '';
+
+    for(let i = 0; i < sortBy.length; i++) {
+      if(sortBy[i] === ',') {
+        sortByString = sortByString + ' ';
+        continue;
+      };
+      sortByString = sortByString + sortBy[i];
+    };
+    query = query.sort(sortByString);
+  } else {
+    query = query.sort('-createdAt');
+  };
+
+  // Pagination
+  const page = parseInt(req.query.page, 10) || 1;
+  const limit = parseInt(req.query.limit, 10) || 25;
+  const startIndex = (page - 1) * limit;
+  const endIndex = page * limit;
+  const total = await Bootcamp.countDocuments();
+
+  query = query.skip(startIndex).limit(limit);
+
+  // Executing query
+  const bootcamps = await query;
+
+  // Pagination result
+  const pagination = {};
+
+  if(endIndex < total) {
+    pagination.next = {
+      page: page + 1,
+      limit: limit,
+    };
+  };
+
+  if(startIndex > 0) {
+    pagination.prev = {
+      page: page - 1,
+      limit: limit,
+    };
+  };
+
+  res
+    .status(200)
+    .json({
+      success: true,
+      count: bootcamps.length,
+      pagination,
+      data: bootcamps,
+    });
+});
 
 // @desc    Get a single Bootcamp
 // @route   GET /apí/v1/bootcamps/:id
 // @access  Public
-async function getBootcamp(req, res, next) {
-  try {
-    const bootcamp = await Bootcamp.findById(req.params.id);
-    
-    if(!bootcamp) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-        });
-    };
-
-    res
-      .status(200)
-      .json({
-        success: true,
-        data: bootcamp,
-      });
-  } catch(error) {
-    res
-      .status(400)
-      .json({
-        success: false,
-      });
+const getBootcamp = asyncHandler(async function(req, res, next) {
+  const bootcamp = await Bootcamp.findById(req.params.id);
+  
+  if(!bootcamp) {
+    return next(new ErrorResponse('Bootcamp not found with id ' + req.params.id, 404));
   };
-};
+
+  res
+    .status(200)
+    .json({
+      success: true,
+      data: bootcamp,
+    });
+});
 
 // @desc    Create a new bootcamp
 // @route   POST /api/v1/bootcamps
 // @access  Private
-async function createBootcamp(req, res, next) {
-  try {
-    const bootcamp = await Bootcamp.create(req.body);
-    res
-      .status(201)
-      .json({
-        success: true,
-        data: bootcamp,
-      });
-  } catch(error) {
-    res
-      .status(400)
-      .json({
-        success: false,
-      });
-  };
-};
+const createBootcamp = asyncHandler(async function(req, res, next) {
+  const bootcamp = await Bootcamp.create(req.body);
+
+  res
+    .status(201)
+    .json({
+      success: true,
+      data: bootcamp,
+    });
+});
 
 // @desc    Update Bootcamp
 // @route   PUT /api/v1/bootcamps/:id
 // @access  Private
-async function updateBootcamp(req, res, next) {
-  try {
-    const bootcamp = await Bootcamp.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      {
-        new: true,
-        runValidators: true,
-      }
-    );
+const updateBootcamp = asyncHandler(async function(req, res, next) {
+  const bootcamp = await Bootcamp.findByIdAndUpdate(
+    req.params.id,
+    req.body,
+    {
+      new: true,
+      runValidators: true,
+    }
+  );
   
-    if(!bootcamp) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-        });
-    };
-  
-    res
-      .status(200)
-      .json({
-        success: true,
-        data: bootcamp,
-      });
-
-  } catch(error) {
-    res
-      .status(400)
-      .json({
-        success: false,
-      });
+  if(!bootcamp) {
+    return next(new ErrorResponse('Bootcamp not found with id ' + req.params.id, 404));
   };
-};
+
+  res
+    .status(200)
+    .json({
+      success: true,
+      data: bootcamp,
+    });
+});
 
 // @desc    Delete Bootcamp
 // @route   DELETE /api/v1/bootcamps/:id
 // @access  Private
-async function deleteBootcamp(req, res, next) {
-  try {
-    const bootcamp = await Bootcamp.findByIdAndDelete(req.params.id);
+const deleteBootcamp = asyncHandler(async function(req, res, next) {
+  const bootcamp = await Bootcamp.findByIdAndDelete(req.params.id);
+  
+  if(!bootcamp) {
+    return next(new ErrorResponse('Bootcamp not found with id ' + req.params.id, 404));
+  };
 
-    if(!bootcamp) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-        });
-    };
-
-    res
-      .status(200)
-      .json({
-        success: true,
-        data: bootcamp,
-      });
-  } catch(error) {
-    res
-      .status(400)
-      .json({
-        success: false,
-      });
-  }
-};
+  res
+    .status(200)
+    .json({
+      success: true,
+      data: bootcamp,
+    });
+});
 
 module.exports = {
   getBootcamps: getBootcamps,
