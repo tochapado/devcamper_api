@@ -1,0 +1,36 @@
+const ErrorResponse = require('../utils/errorResponse.js');
+const asyncHandler = require('../middleware/async.js');
+const Course = require('../models/Course.js');
+
+// @desc    Get courses
+// @route   GET /api/v1/courses
+// @route   GET /api/v1/bootcamps/:bootcampId/courses
+// @access  Public
+const getCourses = asyncHandler(async function(req, res, next) {
+  let query;
+
+  if(req.params.bootcampId) {
+    query = Course.find({
+      bootcamp: req.params.bootcampId,
+    });
+  } else {
+    query = Course.find().populate({
+      path: 'bootcamp',
+      select: 'name description',
+    });
+  };
+
+  const courses = await query;
+
+  res
+    .status(200)
+    .json({
+      success: true,
+      count: courses.length,
+      data: courses,
+    });
+});
+
+module.exports = {
+  getCourses: getCourses,
+};
