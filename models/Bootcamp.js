@@ -99,11 +99,6 @@ const BootcampSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
-  price: {
-    type: Number,
-    required: true,
-    default: 0,
-  },
 }, {
   toJSON: { virtuals: true, },
   toObject: { virtuals: true, },
