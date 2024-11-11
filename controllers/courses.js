@@ -1,11 +1,11 @@
 const ErrorResponse = require('../utils/errorResponse.js');
 const asyncHandler = require('../middleware/async.js');
-const Bootcamp = require('../models/Bootcamp.js');
+const Course = require('../models/Course.js');
 
-//  @desc   Get all bootcamps
-//  @route  GET /api/v1/bootcamps
+//  @desc   Get all courses
+//  @route  GET /api/v1/courses
 //  @access Public
-const getBootcamps = asyncHandler(async function(req, res, next) {
+const getCourses = asyncHandler(async function(req, res, next) {
   let query;
 
   // Copy req.query
@@ -24,7 +24,7 @@ const getBootcamps = asyncHandler(async function(req, res, next) {
   queryStr = queryStr.replace(/\b(gt|gte|lt|lte|in)\b/g, match => '$' + match);
 
   // Finding resource
-  query = Bootcamp.find(JSON.parse(queryStr));
+  query = Course.find(JSON.parse(queryStr));
 
   // SELECT fields
   if(req.query.select) {
@@ -45,12 +45,12 @@ const getBootcamps = asyncHandler(async function(req, res, next) {
   const limit = parseInt(req.query.limit, 10) || 10;
   const startIndex = (page - 1) * limit;
   const endIndex = page * limit;
-  const total = await Bootcamp.countDocuments();
+  const total = await Course.countDocuments();
 
   query = query.skip(startIndex).limit(limit);
 
   // Executing query
-  const bootcamps = await query;
+  const courses = await query;
 
   // Pagination result
   const pagination = {};
@@ -73,49 +73,49 @@ const getBootcamps = asyncHandler(async function(req, res, next) {
     .status(200)
     .json({
       success: true,
-      count: bootcamps.length,
+      count: courses.length,
       pagination: pagination,
-      data: bootcamps,
+      data: courses,
     });
 });
 
-//  @desc   Get single bootcamp
-//  @route  GET /api/v1/bootcamps/:id
+//  @desc   Get single course
+//  @route  GET /api/v1/courses/:id
 //  @access Public
-const getBootcamp = asyncHandler(async function(req, res, next) {
-  const bootcamp = await Bootcamp.findById(req.params.id);
+const getCourse = asyncHandler(async function(req, res, next) {
+  const course = await Course.findById(req.params.id);
 
-  if(!bootcamp) {
-    return next(new ErrorResponse('Bootcamp not found id: ' + req.params.id), 404);
+  if(!course) {
+    return next(new ErrorResponse('Course not found id: ' + req.params.id), 404);
   };
 
   res
     .status(200)
     .json({
       success: true,
-      data: bootcamp,
+      data: course,
     });
 });
 
-//  @desc   Create bootcamp
-//  @route  POST /api/v1/bootcamps
+//  @desc   Create course
+//  @route  POST /api/v1/courses
 //  @access Private
-const createBootcamp = asyncHandler(async function(req, res, next) {
-  const bootcamp = await Bootcamp.create(req.body);
+const createCourse = asyncHandler(async function(req, res, next) {
+  const course = await Course.create(req.body);
 
   res
     .status(201)
     .json({
       success: true,
-      data: bootcamp,
+      data: course,
     });
 });
 
-//  @desc   Update bootcamp
-//  @route  PUT /api/v1/bootcamps/:id
+//  @desc   Update course
+//  @route  PUT /api/v1/courses/:id
 //  @access Private
-const updateBootcamp = asyncHandler(async function(req, res, next) {
-  const bootcamp = await Bootcamp.findByIdAndUpdate(
+const updateCourse = asyncHandler(async function(req, res, next) {
+  const course = await Course.findByIdAndUpdate(
     req.params.id,
     req.body,
     {
@@ -124,41 +124,41 @@ const updateBootcamp = asyncHandler(async function(req, res, next) {
     },
   );
 
-  if(!bootcamp) {
-    return next(new ErrorResponse('Bootcamp not found id: ' + req.params.id, 404));
+  if(!course) {
+    return next(new ErrorResponse('Course not found id: ' + req.params.id, 404));
   };
 
   res
     .status(200)
     .json({
       success: true,
-      data: bootcamp,
+      data: course,
     });
 });
 
-//  @desc   Delete bootcamp
-//  @route  DELETE /api/v1/bootcamps/:id
+//  @desc   Delete course
+//  @route  DELETE /api/v1/courses/:id
 //  @access Private
-const deleteBootcamp = asyncHandler(async function(req, res, next) {
-  const bootcamp = await Bootcamp.findByIdAndDelete(req.params.id);
+const deleteCourse = asyncHandler(async function(req, res, next) {
+  const course = await Course.findByIdAndDelete(req.params.id);
 
-  if(!bootcamp) {
-    return next(new ErrorResponse('Bootcamp not found id: ' + req.params.id, 404));
+  if(!course) {
+    return next(new ErrorResponse('Course not found id: ' + req.params.id, 404));
   };
 
   res
     .status(200)
     .json({
       success: true,
-      msg: 'Bootcamp deleted..',
-      data: bootcamp,
+      msg: 'Course deleted..',
+      data: course,
     });
 });
 
 module.exports = {
-  getBootcamps: getBootcamps,
-  getBootcamp: getBootcamp,
-  createBootcamp: createBootcamp,
-  updateBootcamp: updateBootcamp,
-  deleteBootcamp: deleteBootcamp,
+  getCourses: getCourses,
+  getCourse: getCourse,
+  createCourse: createCourse,
+  updateCourse: updateCourse,
+  deleteCourse: deleteCourse,
 };
