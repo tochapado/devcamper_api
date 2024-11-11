@@ -1,10 +1,10 @@
 const express = require('express');
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 
 const {
   getCourses,
   getCourse,
-  createCourse,
+  addCourse,
   updateCourse,
   deleteCourse,
 } = require('../controllers/courses.js');
@@ -19,7 +19,7 @@ router
 
 router
   .route('/')
-  .post(createCourse);
+  .post(addCourse);
 
 router
   .route('/:id')
