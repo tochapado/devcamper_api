@@ -24,7 +24,9 @@ const getBootcamps = asyncHandler(async function(req, res, next) {
   queryStr = queryStr.replace(/\b(gt|gte|lt|lte|in)\b/g, match => '$' + match);
 
   // Finding resource
-  query = Bootcamp.find(JSON.parse(queryStr)).populate('courses');
+  query = Bootcamp
+    .find(JSON.parse(queryStr))
+    .populate('courses');
 
   // SELECT fields
   if(req.query.select) {
@@ -83,7 +85,9 @@ const getBootcamps = asyncHandler(async function(req, res, next) {
 //  @route  GET /api/v1/bootcamps/:id
 //  @access Public
 const getBootcamp = asyncHandler(async function(req, res, next) {
-  const bootcamp = await Bootcamp.findById(req.params.id);
+  const bootcamp = await Bootcamp
+    .findById(req.params.id)
+    .populate('courses');
 
   if(!bootcamp) {
     return next(new ErrorResponse('Bootcamp not found id: ' + req.params.id), 404);
